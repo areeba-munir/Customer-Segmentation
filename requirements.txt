@@ -4,12 +4,6 @@ scikit-learn
 matplotlib
 seaborn
 plotly
-streamlit
-pandas
-plotly
-scikit-learn
 numpy
 statsmodels
-matplotlib
-seaborn
 Pillow
