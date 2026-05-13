@@ -153,7 +153,8 @@ with tab1:
             color_discrete_sequence=px.colors.qualitative.Bold,
             title="Customer Wealth vs. Spending Propensity"
         )
-        fig_scatter.update_layout(template="plotly_white", margin=dict(t=50, l=0, r=0, b=0))
+        # FIX: Added padding (l=20, r=20, b=20) so the graph has room to breathe
+        fig_scatter.update_layout(template="plotly_white", margin=dict(t=50, l=20, r=20, b=20))
         st.plotly_chart(fig_scatter, use_container_width=True)
         
     with c2:
@@ -163,7 +164,10 @@ with tab1:
             title="Demographic Breakdown by Persona",
             color_discrete_sequence=px.colors.qualitative.Pastel
         )
-        fig_sunburst.update_layout(template="plotly_white", margin=dict(t=50, l=0, r=0, b=0))
+        # FIX: Added generous padding so outer text doesn't clip
+        fig_sunburst.update_layout(template="plotly_white", margin=dict(t=50, l=30, r=30, b=30))
+        # FIX: Makes the labels cleaner and forces them inside when possible
+        fig_sunburst.update_traces(textinfo="label+percent entry") 
         st.plotly_chart(fig_sunburst, use_container_width=True)
 
 # ----- TAB 2: DEEP DEMOGRAPHICS -----
@@ -179,14 +183,19 @@ with tab2:
         fig_radar = go.Figure()
         for i, row in radar_df.iterrows():
             fig_radar.add_trace(go.Scatterpolar(
-                r=[row['Age']/100, row['Income']/150, row['Spending_Score']/100], # Normalized for scaling
-                theta=['Age (Normalized)', 'Income (Normalized)', 'Spending (Normalized)'],
+                r=[row['Age']/100, row['Income']/150, row['Spending_Score']/100], 
+                # FIX: Shortened labels to just 'Age', 'Income', 'Spending' so they fit
+                theta=['Age', 'Income', 'Spending'],
                 fill='toself',
                 name=row['Persona']
             ))
         fig_radar.update_layout(
             polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
-            showlegend=True, template="plotly_white", title="Persona Attribute Radar"
+            showlegend=True, 
+            template="plotly_white", 
+            title="Persona Attribute Radar",
+            # FIX: Huge left and right margins (l=60, r=60) to protect the corner labels
+            margin=dict(t=50, l=60, r=60, b=40)
         )
         st.plotly_chart(fig_radar, use_container_width=True)
         
@@ -197,9 +206,9 @@ with tab2:
             color='Persona', size_max=18, opacity=0.8,
             title="3D Customer Topography"
         )
-        fig_3d.update_layout(template="plotly_white", margin=dict(t=50, l=0, r=0, b=0))
+        # FIX: Adjusted margins for the 3D plot
+        fig_3d.update_layout(template="plotly_white", margin=dict(t=50, l=10, r=10, b=10))
         st.plotly_chart(fig_3d, use_container_width=True)
-
 # ----- TAB 3: MARKETING STRATEGY -----
 with tab3:
     st.markdown("### 🚀 Actionable Marketing Strategies Based on AI Segments")
