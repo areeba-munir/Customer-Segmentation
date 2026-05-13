@@ -3,7 +3,6 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
 import numpy as np
 
 # ==========================================
@@ -14,13 +13,10 @@ st.set_page_config(page_title="Executive Customer Analytics", page_icon="📈", 
 # Clean, Modern SaaS Light Theme CSS
 st.markdown("""
     <style>
-    /* Main Background */
     .stApp {
         background-color: #f4f7f6;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    
-    /* Header Styling */
     .main-header {
         background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
         padding: 30px;
@@ -31,8 +27,6 @@ st.markdown("""
     }
     .main-header h1 { color: white; margin: 0; font-size: 2.5rem; font-weight: 700; }
     .main-header p { margin: 5px 0 0 0; font-size: 1.1rem; opacity: 0.9; }
-    
-    /* Custom Metric Cards */
     div[data-testid="metric-container"] {
         background-color: white;
         border-radius: 12px;
@@ -45,8 +39,6 @@ st.markdown("""
         transform: translateY(-5px);
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     }
-    
-    /* Chart Containers */
     .chart-box {
         background-color: white;
         border-radius: 12px;
@@ -81,35 +73,33 @@ with st.sidebar:
     st.markdown("### Data Filters")
     gender_filter = st.multiselect("Select Gender", options=["Male", "Female"], default=["Male", "Female"])
     
-    # Filter Data
     filtered_df = df[df['Gender'].isin(gender_filter)].copy()
 
 # ==========================================
-# 4. MACHINE LEARNING: K-MEANS & PERSONA LOGIC
+# 4. MACHINE LEARNING & PROFESSIONAL PERSONAS
 # ==========================================
 if not filtered_df.empty:
     X = filtered_df[['Income', 'Spending_Score']]
     
-    # Fit Model
     kmeans = KMeans(n_clusters=n_clusters, init='k-means++', random_state=42, n_init=10)
     filtered_df['Cluster'] = kmeans.fit_predict(X)
     
-    # DYNAMIC PERSONA GENERATOR: Analyzes cluster centers to name them!
+    # Industry-standard Persona Mapping
     centroids = pd.DataFrame(kmeans.cluster_centers_, columns=['Income', 'Spending_Score'])
     inc_mean, spend_mean = X['Income'].mean(), X['Spending_Score'].mean()
     
     persona_map = {}
     for i, row in centroids.iterrows():
         if row['Income'] > inc_mean and row['Spending_Score'] > spend_mean:
-            persona_map[i] = "💎 VIP Champions"
+            persona_map[i] = "High-Value Premium"
         elif row['Income'] > inc_mean and row['Spending_Score'] <= spend_mean:
-            persona_map[i] = "🎯 Untapped Potential"
+            persona_map[i] = "Conservative Wealth"
         elif row['Income'] <= inc_mean and row['Spending_Score'] > spend_mean:
-            persona_map[i] = "🔥 Trendsetters"
+            persona_map[i] = "Aspirational Spenders"
         elif row['Income'] <= inc_mean and row['Spending_Score'] <= spend_mean:
-            persona_map[i] = "📉 Budget Conscious"
+            persona_map[i] = "Value Seekers"
         else:
-            persona_map[i] = "⭐ Mainstream"
+            persona_map[i] = "Core Market"
             
     filtered_df['Persona'] = filtered_df['Cluster'].map(persona_map)
 
@@ -136,7 +126,6 @@ col4.metric("Active Personas Discovered", filtered_df['Persona'].nunique())
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# --- TABS FOR ORGANIZED ANALYSIS ---
 tab1, tab2, tab3 = st.tabs(["🎯 Persona Mapping", "🕸️ Deep Demographics", "🚀 Marketing Strategy"])
 
 # ----- TAB 1: PERSONA MAPPING -----
@@ -145,28 +134,22 @@ with tab1:
     c1, c2 = st.columns([2, 1])
     
     with c1:
-        # Advanced Scatter Plot with Marginal Histograms
         fig_scatter = px.scatter(
             filtered_df, x="Income", y="Spending_Score", color="Persona", size="Age",
-            hover_data=["Gender", "Age"],
-            marginal_x="box", marginal_y="histogram",
+            hover_data=["Gender", "Age"], marginal_x="box", marginal_y="histogram",
             color_discrete_sequence=px.colors.qualitative.Bold,
             title="Customer Wealth vs. Spending Propensity"
         )
-        # FIX: Added padding (l=20, r=20, b=20) so the graph has room to breathe
         fig_scatter.update_layout(template="plotly_white", margin=dict(t=50, l=20, r=20, b=20))
         st.plotly_chart(fig_scatter, use_container_width=True)
         
     with c2:
-        # Advanced Sunburst Chart
         fig_sunburst = px.sunburst(
             filtered_df, path=['Persona', 'Gender'],
             title="Demographic Breakdown by Persona",
             color_discrete_sequence=px.colors.qualitative.Pastel
         )
-        # FIX: Added generous padding so outer text doesn't clip
         fig_sunburst.update_layout(template="plotly_white", margin=dict(t=50, l=30, r=30, b=30))
-        # FIX: Makes the labels cleaner and forces them inside when possible
         fig_sunburst.update_traces(textinfo="label+percent entry") 
         st.plotly_chart(fig_sunburst, use_container_width=True)
 
@@ -176,59 +159,46 @@ with tab2:
     c3, c4 = st.columns(2)
     
     with c3:
-        # Calculate Averages for Radar Chart
         radar_df = filtered_df.groupby('Persona')[['Age', 'Income', 'Spending_Score']].mean().reset_index()
-        
-        # Radar Chart (Spider Web)
         fig_radar = go.Figure()
         for i, row in radar_df.iterrows():
             fig_radar.add_trace(go.Scatterpolar(
                 r=[row['Age']/100, row['Income']/150, row['Spending_Score']/100], 
-                # FIX: Shortened labels to just 'Age', 'Income', 'Spending' so they fit
-                theta=['Age', 'Income', 'Spending'],
-                fill='toself',
-                name=row['Persona']
+                theta=['Age', 'Income', 'Spending'], fill='toself', name=row['Persona']
             ))
         fig_radar.update_layout(
             polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
-            showlegend=True, 
-            template="plotly_white", 
-            title="Persona Attribute Radar",
-            # FIX: Huge left and right margins (l=60, r=60) to protect the corner labels
+            showlegend=True, template="plotly_white", title="Persona Attribute Radar",
             margin=dict(t=50, l=60, r=60, b=40)
         )
         st.plotly_chart(fig_radar, use_container_width=True)
         
     with c4:
-        # 3D Visualization
         fig_3d = px.scatter_3d(
             filtered_df, x='Age', y='Income', z='Spending_Score',
-            color='Persona', size_max=18, opacity=0.8,
-            title="3D Customer Topography"
+            color='Persona', size_max=18, opacity=0.8, title="3D Customer Topography"
         )
-        # FIX: Adjusted margins for the 3D plot
         fig_3d.update_layout(template="plotly_white", margin=dict(t=50, l=10, r=10, b=10))
         st.plotly_chart(fig_3d, use_container_width=True)
+
 # ----- TAB 3: MARKETING STRATEGY -----
 with tab3:
     st.markdown("### 🚀 Actionable Marketing Strategies Based on AI Segments")
     st.markdown("These insights are generated by analyzing the center-points (centroids) of our machine learning clusters.")
     
-    # Iterate through unique personas discovered and write business logic
     st.markdown("<div class='chart-box'>", unsafe_allow_html=True)
     for persona in filtered_df['Persona'].unique():
-        if "VIP" in persona:
-            st.success(f"**{persona}**: These are your most valuable customers. \n* **Action:** Enroll them in an exclusive loyalty program. Send them early-access invitations to premium products.")
-        elif "Untapped" in persona:
-            st.info(f"**{persona}**: They have high income but don't spend it here. \n* **Action:** Send personalized, targeted advertisements. They need a reason to trust your brand over competitors.")
-        elif "Trendsetters" in persona:
-            st.warning(f"**{persona}**: They don't make much, but they love spending. \n* **Action:** Push trendy, highly visible, and heavily marketed items. Use social media influencer marketing.")
-        elif "Budget" in persona:
-            st.error(f"**{persona}**: Low income and low spending. \n* **Action:** Send them extreme discount coupons, clearance sales, and BOGO (Buy One Get One) offers.")
+        if "Premium" in persona:
+            st.success(f"**{persona}**: These are your most valuable customers. \n* **Action:** Enroll them in an exclusive loyalty program. Send them early-access invitations to premium products and offer personalized concierge services.")
+        elif "Conservative" in persona:
+            st.info(f"**{persona}**: High-net-worth individuals with low current engagement. \n* **Action:** Focus on trust-building, quality guarantees, and personalized, high-ROI marketing campaigns. Avoid spamming discounts.")
+        elif "Aspirational" in persona:
+            st.warning(f"**{persona}**: High spending propensity despite lower income. \n* **Action:** Push trendy, highly visible items. Leverage social media marketing, limited-time offers, and 'Buy Now, Pay Later' (BNPL) financing options.")
+        elif "Value" in persona:
+            st.error(f"**{persona}**: Highly price-sensitive consumers. \n* **Action:** Send extreme discount coupons, clearance sales, and BOGO (Buy One Get One) offers. Emphasize durability and cost-savings.")
         else:
-            st.secondary(f"**{persona}**: The standard mass-market consumer. \n* **Action:** Keep them engaged with standard seasonal newsletters and generalized store promotions.")
+            st.info(f"**{persona}**: The standard mass-market consumer base. \n* **Action:** Keep them engaged with standard seasonal newsletters, generalized store promotions, and volume-based discounts.")
     st.markdown("</div>", unsafe_allow_html=True)
     
-    # Show Raw Data for Transparency
     with st.expander("View Raw Clustered Data"):
         st.dataframe(filtered_df.sort_values(by="Persona"), use_container_width=True)
