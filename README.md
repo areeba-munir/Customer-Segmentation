@@ -7,7 +7,7 @@
 
 An AI-driven customer segmentation and behavioral analytics dashboard built to help modern marketing teams transition from mass-marketing to highly targeted, persona-based campaigns. 
 
-**[🔗 Click Here to View the Live Application](Insert_Your_Streamlit_Cloud_Link_Here)**
+**[🔗 Click Here to see live demo](https://customer-segmentation-4ckst3prucsdvsckrp6cke.streamlit.app/)**
 
 ---
 
